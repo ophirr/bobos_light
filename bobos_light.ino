@@ -33,6 +33,17 @@ int neoPixelToChange = 0; //track which neoPixel to change
 int neoPixel_j = 0; //stores values for program cycles
  
 
+uint32_t LIME = 0x00FF00;
+uint32_t CORNFLOWERBLUE = 0x6495ED;
+uint32_t REBECCAPURPLE = 0x663399;
+uint32_t ORCHID = 0xDA70D6;
+uint32_t GOLD = 0xFFD700;
+uint32_t YELLOW = 0xFFFF00;
+uint32_t WHITE = 0xFFFFFF;
+uint32_t DODGERBLUE = 0x1E90FF;
+uint32_t AQUA = 0x00FFFF;
+uint32_t LAWNGREEN = 0x7CFC00;
+
 
 // IMPORTANT: To reduce NeoPixel burnout risk, add 1000 uF capacitor across
 // pixel power leads, add 300 - 500 Ohm resistor on first pixel's data input
@@ -94,20 +105,22 @@ void loop() {
 
 void startShow(int i) {
   switch(i){
-    case 0: allColor(strip.Color(127,0,127));    // Violet
+    case 0: allColor(REBECCAPURPLE);   
             break;
-    case 1: allColor(strip.Color(255, 0, 0));  // Red
+    case 1: allColor(CORNFLOWERBLUE);
             break;
-    case 2: allColor(strip.Color(0, 255, 0));  // Green
+    case 2: allColor(ORCHID);
             break;
-    case 3: allColor(strip.Color(0, 0, 255));  // Blue
+    case 3: allColor(AQUA);
             break;
-    case 4: rainbow(20);
+    case 4: allColor(DODGERBLUE);
             break;
-    case 5: rainbowCycle(20);
+    case 5: allColor(LAWNGREEN);
             break;
-//    case 6: theaterChaseRainbow(50);
-//            break;
+    case 6: rainbow(20);
+            break;
+    case 7: rainbowCycle(20);
+            break;
   }
 }
 
