@@ -1,4 +1,4 @@
-#include <Adafruit_NeoPixel.h>
+  #include <Adafruit_NeoPixel.h>
 #include <avr/power.h>
 
 #define BUTTON_PIN  0    // Digital IO pin connected to the button.  This will be
@@ -82,7 +82,7 @@ void loop() {
       neoPixelToChange = 0;
       neoPixel_j = 0;
       showType++;
-      if (showType > 5  )
+      if (showType > 7  )
         showType=0;
       startShow(showType);
     }
@@ -113,7 +113,7 @@ void startShow(int i) {
             break;
     case 3: allColor(AQUA);
             break;
-    case 4: allColor(DODGERBLUE);
+    case 4: allColor(GOLD);
             break;
     case 5: allColor(LAWNGREEN);
             break;
