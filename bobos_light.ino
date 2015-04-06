@@ -1,4 +1,4 @@
-  #include <Adafruit_NeoPixel.h>
+#include <Adafruit_NeoPixel.h>
 #include <avr/power.h>
 
 #define BUTTON_PIN  0    // Digital IO pin connected to the button.  This will be
