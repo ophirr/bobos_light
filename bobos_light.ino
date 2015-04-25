@@ -28,6 +28,11 @@ int showType = 0;
 // timer 
 unsigned long currentMillis;
 unsigned long previousMillis; // will store last time pixel was updated
+unsigned long main_currentMillis; // store last main loop time
+unsigned long bedtimer_dim = 3600000; // dim down after 1 hour of use
+int seconds; //seconds count in the timer
+
+int bedtime_brightness = 40; // go down to 1...<40>...........255 brightness
 
 int neoPixelToChange = 0; //track which neoPixel to change
 int neoPixel_j = 0; //stores values for program cycles
@@ -43,7 +48,8 @@ uint32_t WHITE = 0xFFFFFF;
 uint32_t DODGERBLUE = 0x1E90FF;
 uint32_t AQUA = 0x00FFFF;
 uint32_t LAWNGREEN = 0x7CFC00;
-
+uint32_t CHOCOLATE = 0xD2691E;
+uint32_t GREENYELLOW = 0xADFF2F;
 
 // IMPORTANT: To reduce NeoPixel burnout risk, add 1000 uF capacitor across
 // pixel power leads, add 300 - 500 Ohm resistor on first pixel's data input
@@ -56,6 +62,23 @@ void setup() {
   if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
 #endif
   // End of trinket special code
+  
+  // initialize Timer1
+    cli();          // disable global interrupts
+    TCCR1A = 0;     // set entire TCCR1A register to 0
+    TCCR1B = 0;     // same for TCCR1B
+ 
+    // set compare match register to desired timer count:
+    OCR1A = 15624;
+    // turn on CTC mode:
+    TCCR1B |= (1 << WGM12);
+    // Set CS10 and CS12 bits for 1024 prescaler:
+    TCCR1B |= (1 << CS10);
+    TCCR1B |= (1 << CS12);
+    // enable timer compare interrupt:
+    TIMSK1 |= (1 << OCIE1A);
+    // enable global interrupts:
+    sei();
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   //colorWipe(strip.Color(127,0,127), 50);
@@ -66,7 +89,6 @@ void setup() {
 }
 
 void loop() {
-  
  
   // Get current button state.
   bool newState = digitalRead(BUTTON_PIN);
@@ -82,7 +104,7 @@ void loop() {
       neoPixelToChange = 0;
       neoPixel_j = 0;
       showType++;
-      if (showType > 7  )
+      if (showType > 9  )
         showType=0;
       startShow(showType);
     }
@@ -105,9 +127,9 @@ void loop() {
 
 void startShow(int i) {
   switch(i){
-    case 0: allColor(REBECCAPURPLE);   
+    case 0: allColor(CORNFLOWERBLUE);  
             break;
-    case 1: allColor(CORNFLOWERBLUE);
+    case 1: rainbowCycle(20); 
             break;
     case 2: allColor(ORCHID);
             break;
@@ -119,7 +141,11 @@ void startShow(int i) {
             break;
     case 6: rainbow(20);
             break;
-    case 7: rainbowCycle(20);
+    case 7: allColor(REBECCAPURPLE);
+            break;
+    case 8: allColor(CHOCOLATE);
+            break;
+    case 9: allColor(GREENYELLOW);
             break;
   }
 }
@@ -208,5 +234,16 @@ uint32_t Wheel(byte WheelPos) {
    WheelPos -= 170;
    return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
   }
+}
+
+ISR(TIMER1_COMPA_vect)
+{
+    // We're hit the timer overflow... do something.
+    seconds++;
+    if (seconds == 3660)
+    {
+        seconds = 0;
+        strip.setBrightness(bedtime_brightness); // an hour has passed...dim down.
+    }
 }
 
