@@ -1,12 +1,13 @@
 #include <Adafruit_NeoPixel.h>
 #include <avr/power.h>
+#include "Timer.h"
+
+Timer t;
 
 #define BUTTON_PIN  0    // Digital IO pin connected to the button.  This will be
-                          // driven with a pull-up resistor so the switch should
-                          // pull the pin to ground momentarily.  On a high -> low
-                          // transition the button press logic will execute.
 
 #define PIN 1
+
 
 int brightPin = 1;
 int brightVal = 0;
@@ -29,10 +30,12 @@ int showType = 0;
 unsigned long currentMillis;
 unsigned long previousMillis; // will store last time pixel was updated
 unsigned long main_currentMillis; // store last main loop time
-unsigned long bedtimer_dim = 3600000; // dim down after 1 hour of use
 int seconds; //seconds count in the timer
 
+
+
 int bedtime_brightness = 40; // go down to 1...<40>...........255 brightness
+int gNtrigger = 0;
 
 int neoPixelToChange = 0; //track which neoPixel to change
 int neoPixel_j = 0; //stores values for program cycles
@@ -62,23 +65,7 @@ void setup() {
   if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
 #endif
   // End of trinket special code
-  
-  // initialize Timer1
-    cli();          // disable global interrupts
-    TCCR1A = 0;     // set entire TCCR1A register to 0
-    TCCR1B = 0;     // same for TCCR1B
- 
-    // set compare match register to desired timer count:
-    OCR1A = 15624;
-    // turn on CTC mode:
-    TCCR1B |= (1 << WGM12);
-    // Set CS10 and CS12 bits for 1024 prescaler:
-    TCCR1B |= (1 << CS10);
-    TCCR1B |= (1 << CS12);
-    // enable timer compare interrupt:
-    TIMSK1 |= (1 << OCIE1A);
-    // enable global interrupts:
-    sei();
+
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   //colorWipe(strip.Color(127,0,127), 50);
@@ -86,6 +73,7 @@ void setup() {
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
  
+  t.every(3600000, goodNight);  // Triggers the goodnight function 1 hour
 }
 
 void loop() {
@@ -115,14 +103,17 @@ void loop() {
   // Set the last button state to the old state.
   oldState = newState;
 
- 
- brightVal  = analogRead(brightPin); 
- if (oldBright != brightVal) { 
-   brightness = map(brightVal, 0, 1023, 0, 255);
-   strip.setBrightness(brightness);
-   oldBright = brightVal;
- }
- 
+  brightVal  = analogRead(brightPin); 
+
+  // if brightVal has changed by +/- 10 then update (else stay dim)
+  if (brightVal >= (oldBright+10) || brightVal <= (oldBright-10)) { 
+    brightness = map(brightVal, 0, 1023, 0, 255);
+    strip.setBrightness(brightness);
+    oldBright = brightVal;
+    gNtrigger = 0;
+  }
+
+ t.update();
 }
 
 void startShow(int i) {
@@ -236,14 +227,7 @@ uint32_t Wheel(byte WheelPos) {
   }
 }
 
-ISR(TIMER1_COMPA_vect)
-{
-    // We're hit the timer overflow... do something.
-    seconds++;
-    if (seconds == 3660)
-    {
-        seconds = 0;
-        strip.setBrightness(bedtime_brightness); // an hour has passed...dim down.
-    }
+void goodNight(){
+ strip.setBrightness(bedtime_brightness); // an hour has passed...dim down.
 }
 
